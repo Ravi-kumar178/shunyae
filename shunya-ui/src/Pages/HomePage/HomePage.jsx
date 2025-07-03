@@ -34,12 +34,13 @@ const HomePage = () => {
 
     
     const serviceId = 'service_xb8286f';
-    const templateId = 'template_79u69cg';
+    const templateId = 'template_2szh6cl';
     const publicKey = 'YlMwf8jeMwzg1nz48';
 
     const templateParams = {
       from_name: name,
-      from_email: email,
+      from_email: userData.email,
+      to_email: email,
       subject,
       message
     };
