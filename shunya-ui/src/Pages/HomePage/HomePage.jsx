@@ -126,7 +126,7 @@ const HomePage = () => {
                 <textarea
                 rows={8}
                 required
-                placeholder='Enter Your Subject*'
+                placeholder='Enter Your Message*'
                 name='message'
                 value={formData.message}
                 onChange={(e)=>setFormData(prev => ({...prev,[e.target.name]: e.target.value}))}
