@@ -37,7 +37,7 @@ const RegisterPage = () => {
     }
     
     if(password.length < 6){
-      toast.error('Please should be atleast 6 length');
+      toast.error('Password should be atleast 6 length');
       return;
     }
 
