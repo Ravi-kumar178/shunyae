@@ -5,6 +5,8 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import '../RegisterPage/RegisterPage.css'
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import Select from 'react-select'
+import { apiRequests } from '../../Api';
 
 const LoginPage = () => {
 
@@ -13,16 +15,15 @@ const LoginPage = () => {
 
   
     /* formdata state management */
-    const [formData, setFormData] = useState({email:"",password:""});
+    const [formData, setFormData] = useState({email:"",password:"",role:""});
 
     const navigate = useNavigate(); // use inside component
 
-    const onLoginSubmitHandler = (e) => {
+    const onLoginSubmitHandler = async(e) => {
       e.preventDefault();
+      const { email, password, role } = formData;
 
-      const { email, password } = formData;
-
-      if (!email || !password) {
+      if (!email || !password || !role) {
         toast.error("All fields are required.");
         return;
       }
@@ -34,23 +35,49 @@ const LoginPage = () => {
         return;
       }
 
-      //retreiving data from local storage
-      const storedUser = JSON.parse(localStorage.getItem("user"));
+      const userData = { email, password, role };
 
-      if (!storedUser) {
-        toast.error("No user found. Please register first.");
-        return;
+      try {
+        // Call API
+        const response = await apiRequests.postRequestWithNoToken(
+          "auth/login",
+          userData
+        );
+  
+        
+        if (response?.token && response?.user) {
+          const { token, user } = response;
+  
+          // Save token & user in localStorage
+          localStorage.setItem("token", token);
+          localStorage.setItem("user", JSON.stringify(user));
+  
+          toast.success(response?.message || "Logged In successfully!");
+          navigate("/home"); 
+        } 
+        else if(response?.message){
+          toast.error(response.message);
+        }
+        else {
+          toast.error("Login failed. Please check your credentials.");
+         
+        }
+      } catch (error) {
+  
+     
+  
+        const errorMsg =
+          error.response?.data?.message ||
+          error?.message ||
+          "Something went wrong!";
+        toast.error(errorMsg);
       }
-
-      if (storedUser.email !== email || storedUser.password !== password) {
-        toast.error("Invalid email or password.");
-        return;
-      }
-
-      toast.success("Login successful!");
-      navigate("/home"); 
     };
 
+    const roleOptions = [
+      { value: "teacher", label: "Teacher" },
+      { value: "student", label: "Student" }
+    ];
 
   return (
         <section className="register-main">
@@ -78,6 +105,52 @@ const LoginPage = () => {
                  className='register-input'
                  />
               </div>
+
+              {/* Select role */}
+              <div className='register-name-div '>
+                <label className='register-label'>
+                  Select Role<sup className='register-sup'>*</sup>
+                </label>
+                <Select
+                options={roleOptions}
+                value={roleOptions.find(opt => opt.value === formData.role)}
+                onChange={(selected) =>
+                  setFormData((prev) => ({ ...prev, role: selected.value }))
+                }
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    backgroundColor:" #1F2833",
+                    color: "#fff",
+                    borderRadius: "8px",
+                    padding: "3px",
+                    marginTop:"8px",
+                    boxShadow:"rgba(255, 255, 255, 0.18) 0px -1px 0px inset",
+                    letterSpacing:"1px",
+                    fontWeight:"500"
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    backgroundColor: "#1F2833",
+                    borderRadius: "8px",
+                    padding: "5px",
+                    color: "#fff",
+                  }),
+                  option: (base, { isFocused }) => ({
+                    ...base,
+                    backgroundColor: isFocused ? "#333" : "#1F2833",
+                    color: "#fff",
+                    padding: "10px"
+                  }),
+                  singleValue: (base) => ({
+                    ...base,
+                    color: "#F1F2F3",  
+                    fontWeight:"500"
+                  }),
+                }}
+              />
+              </div>
+
     
               {/* password */}
               <div className='register-name-div'>
@@ -106,7 +179,7 @@ const LoginPage = () => {
               type='submit'
               className='register-button'
               >
-               Create Account
+               Login
               </button>
             </form>
             <p onClick={()=>navigate('/register')} className='register-link' >Create Account</p>

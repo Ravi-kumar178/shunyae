@@ -3,6 +3,7 @@ import {Routes, Route, Navigate} from 'react-router-dom'
 import RegisterPage from './Pages/RegisterPage/RegisterPage'
 import LoginPage from './Pages/LoginPage/LoginPage'
 import HomePage from './Pages/HomePage/HomePage'
+import AssignmentsPage from './Pages/AssignmentsPage/AssignmentsPage'
 import ProtectedRoute from './ProtectedRoute/ProtectedRoute'
 
 function App() {
@@ -18,6 +19,14 @@ function App() {
           element={
             <ProtectedRoute>
               <HomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/assignments"
+          element={
+            <ProtectedRoute>
+              <AssignmentsPage />
             </ProtectedRoute>
           }
         />

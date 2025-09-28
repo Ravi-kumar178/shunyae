@@ -5,7 +5,8 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import './RegisterPage.css'
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-
+import Select from 'react-select'
+import { apiRequests } from '../../Api';
 
 const RegisterPage = () => {
 
@@ -14,30 +15,27 @@ const RegisterPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   /* formdata state management */
-  const [formData, setFormData] = useState({name:"",email:"",password:"",confirmPassword:""});
+  const [formData, setFormData] = useState({name:"",email:"",password:"",confirmPassword:"",role: ""});
 
   const navigate = useNavigate();
 
-  const onSubmitHandler = (e) => {
+  const onSubmitHandler = async (e) => {
     e.preventDefault();
-    //consoling formdata
-    console.log(formData);
-    const { name, email, password, confirmPassword } = formData;
+    const { name, email, password, confirmPassword, role } = formData;
 
-    if (!name || !email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword || !role) {
       toast.error("All fields are required.");
       return;
     }
 
-    //email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast.error("Invalid email format.");
       return;
     }
-    
-    if(password.length < 6){
-      toast.error('Password should be atleast 6 length');
+
+    if (password.length < 6) {
+      toast.error("Password should be at least 6 characters.");
       return;
     }
 
@@ -46,14 +44,46 @@ const RegisterPage = () => {
       return;
     }
 
-    //saving in localstorage
-    const userData = { name, email, password };
-    localStorage.setItem("user", JSON.stringify(userData));
-    toast.success('Account Created Successfully');
+    const userData = { name, email, password, role };
 
-    navigate('/login');
-  }
+    try {
+      // Call API
+      const response = await apiRequests.postRequestWithNoToken(
+        "auth/register",
+        userData
+      );
 
+      
+      if (response.status === 201 || response?.message) {
+        const { token, user } = response;
+
+        // Save token & user in localStorage
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
+
+        toast.success(response?.message || "Account created successfully!");
+        navigate("/home"); 
+      } 
+      else if(response.status == 400 || response?.message){
+        toast.warning(response?.message);
+      }
+      else {
+        toast.error(response?.message || "Registration failed");
+        
+      }
+    } catch (error) {
+      const errorMsg =
+        error.response?.message ||
+        error?.message ||
+        "Something went wrong!";
+      toast.error(errorMsg);
+    }
+  };
+
+  const roleOptions = [
+    { value: "teacher", label: "Teacher" },
+    { value: "student", label: "Student" }
+  ];
   return (
     <section className="register-main">
       {/* form section */}
@@ -93,6 +123,51 @@ const RegisterPage = () => {
              onChange={(e)=>setFormData(prev => ({...prev,[e.target.name]:e.target.value}))}
              className='register-input'
              />
+          </div>
+
+          {/* Select role */}
+          <div className='register-name-div '>
+            <label className='register-label'>
+              Select Role<sup className='register-sup'>*</sup>
+            </label>
+            <Select
+            options={roleOptions}
+            value={roleOptions.find(opt => opt.value === formData.role)}
+            onChange={(selected) =>
+              setFormData((prev) => ({ ...prev, role: selected.value }))
+            }
+            styles={{
+              control: (base) => ({
+                ...base,
+                backgroundColor:" #1F2833",
+                color: "#fff",
+                borderRadius: "8px",
+                padding: "3px",
+                marginTop:"8px",
+                boxShadow:"rgba(255, 255, 255, 0.18) 0px -1px 0px inset",
+                letterSpacing:"1px",
+                fontWeight:"500"
+              }),
+              menu: (base) => ({
+                ...base,
+                backgroundColor: "#1F2833",
+                borderRadius: "8px",
+                padding: "5px",
+                color: "#fff",
+              }),
+              option: (base, { isFocused }) => ({
+                ...base,
+                backgroundColor: isFocused ? "#333" : "#1F2833",
+                color: "#fff",
+                padding: "10px"
+              }),
+              singleValue: (base) => ({
+                ...base,
+                color: "#F1F2F3",  
+                fontWeight:"500"
+              }),
+            }}
+          />
           </div>
 
           {/* password */}
