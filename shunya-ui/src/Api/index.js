@@ -1,7 +1,7 @@
 import { toast } from "react-toastify";
 import axios from "axios";
 
-axios.defaults.baseURL = "http://localhost:3000/api/";
+axios.defaults.baseURL = "https://shunyae.onrender.com/api/";
 axios.defaults.headers.post["Content-Type"] = "application/json";
 /* axios.defaults.withCredentials = true; */
 
